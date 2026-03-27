@@ -33,8 +33,6 @@ export default function DashboardPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [sessionTitle, setSessionTitle] = useState('');
-  const [scheduledAt, setScheduledAt] = useState('');
-  const [maxParticipants, setMaxParticipants] = useState('5');
   const [waitingRoomEnabled, setWaitingRoomEnabled] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
   const [creating, setCreating] = useState(false);
@@ -86,8 +84,6 @@ export default function DashboardPage() {
         },
         body: JSON.stringify({ 
           title: sessionTitle, 
-          scheduled_at: scheduledAt || null, 
-          max_participants: parseInt(maxParticipants) || null,
           waiting_room_enabled: waitingRoomEnabled
         })
       });
@@ -275,51 +271,32 @@ export default function DashboardPage() {
               
               <form onSubmit={showCreateModal ? handleCreateSession : handleJoinSession} className="space-y-6">
                 {showCreateModal ? (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-white/70">Session Title</label>
-                      <input 
-                        required
-                        value={sessionTitle}
-                        onChange={e => setSessionTitle(e.target.value)}
-                        className="input-field w-full" 
-                        placeholder="e.g. React & TypeScript Workshop"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-white/70">Schedule (Optional)</label>
+                        <label className="text-sm font-medium text-white/70">Session Title</label>
                         <input 
-                          type="datetime-local"
-                          value={scheduledAt}
-                          onChange={e => setScheduledAt(e.target.value)}
-                          className="input-field w-full text-xs" 
+                          required
+                          value={sessionTitle}
+                          onChange={e => setSessionTitle(e.target.value)}
+                          className="input-field w-full h-12" 
+                          placeholder="e.g. React & TypeScript Workshop"
                         />
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-white/70">Max Students</label>
-                        <input 
-                          type="number"
-                          min="1"
-                          max="50"
-                          value={maxParticipants}
-                          onChange={e => setMaxParticipants(e.target.value)}
-                          className="input-field w-full" 
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                        <label className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-2xl cursor-pointer hover:bg-white/10 transition-all">
+                      <div className="pt-2">
+                        <label className="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl cursor-pointer hover:bg-white/10 transition-all group">
                           <input 
                             type="checkbox"
                             checked={waitingRoomEnabled}
                             onChange={e => setWaitingRoomEnabled(e.target.checked)}
-                            className="w-5 h-5 rounded border-white/20 bg-white/5 text-primary focus:ring-0" 
+                            className="w-5 h-5 rounded border-white/20 bg-white/5 text-primary focus:ring-0 cursor-pointer" 
                           />
-                          <span className="text-sm font-medium text-white/70">Enable Waiting Room</span>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-bold text-white group-hover:text-primary transition-colors">Enable Waiting Room</span>
+                            <span className="text-xs text-white/40">You'll need to manually approve participants</span>
+                          </div>
                         </label>
+                      </div>
                     </div>
-                  </div>
                 ) : (
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-white/70">Invite Code</label>

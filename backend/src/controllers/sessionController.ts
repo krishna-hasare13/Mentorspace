@@ -7,7 +7,7 @@ const generateInviteCode = (): string => {
 };
 
 export const createSession = async (req: Request, res: Response): Promise<void> => {
-    const { title, language = 'javascript', scheduled_at, max_participants, waiting_room_enabled } = req.body;
+    const { title, language = 'javascript', waiting_room_enabled } = req.body;
     const mentorId = req.user!.sub;
   
     if (!title) {
@@ -25,10 +25,7 @@ export const createSession = async (req: Request, res: Response): Promise<void> 
           title,
           invite_code: inviteCode,
           language,
-          status: scheduled_at ? 'scheduled' : 'active',
-          scheduled_at: scheduled_at || null,
-          max_participants: max_participants || null,
-          waiting_room_enabled: waiting_room_enabled || false,
+          status: 'active',
         })
       .select('*')
       .single();
@@ -134,19 +131,6 @@ export const joinSession = async (req: Request, res: Response): Promise<void> =>
     if (error || !session) {
       res.status(404).json({ error: 'Session not found or has ended' });
       return;
-    }
-
-    // Check participant limit
-    if (session.max_participants) {
-      const { count } = await supabaseAdmin
-        .from('session_participants')
-        .select('*', { count: 'exact', head: true })
-        .eq('session_id', session.id);
-
-      if (count && count >= session.max_participants) {
-        res.status(403).json({ error: 'Session is full' });
-        return;
-      }
     }
 
     const status = session.waiting_room_enabled ? 'pending' : 'joined';
