@@ -40,10 +40,10 @@ export const Navbar = () => {
                         <motion.div
                             initial={{ scale: 0.8 }}
                             animate={{ scale: 1 }}
-                            whileHover={{ rotate: 10 }}
-                            className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center group-hover:bg-primary/30 transition-colors"
+                            whileHover={{ scale: 1.1, rotate: 10 }}
+                            className="w-10 h-10 flex items-center justify-center transition-all"
                         >
-                            <Bot className="w-6 h-6 text-primary" />
+                            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain mix-blend-screen" />
                         </motion.div>
                         <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70 hidden sm:block">
                             MentorSpace

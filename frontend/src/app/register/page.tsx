@@ -151,7 +151,7 @@ export default function RegisterPage() {
 
             <header className="absolute left-0 right-0 top-0 flex items-center justify-between px-6 py-6 border-b border-white/5 z-20 bg-background/50 backdrop-blur-sm">
                 <Link href="/" className="flex items-center gap-2 group">
-                    <Bot className="w-5 h-5 text-primary" />
+                    <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain" />
                     <span className="text-xs tracking-[0.2em] uppercase font-bold text-white/50 group-hover:text-white transition-colors">MENTORSPACE</span>
                 </Link>
                 <Link href="/">
