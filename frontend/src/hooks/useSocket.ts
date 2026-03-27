@@ -10,16 +10,19 @@ export const useSocket = (namespace: string, sessionId: string) => {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    if (!session?.access_token || !sessionId) return;
+    if (!sessionId) return;
 
     const s = io(`${process.env.NEXT_PUBLIC_BACKEND_URL}${namespace}`, {
       auth: {
-        token: session.access_token
+        token: session?.access_token
       },
       query: {
         sessionId
       },
-      transports: ['websocket']
+      transports: ['websocket'],
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
     });
 
     s.on('connect', () => {
@@ -35,8 +38,18 @@ export const useSocket = (namespace: string, sessionId: string) => {
 
     return () => {
       s.disconnect();
+      socketRef.current = null;
+      setSocket(null);
     };
-  }, [namespace, sessionId, session?.access_token]);
+  }, [namespace, sessionId]);
+
+  // Handle token updates without destroying the socket
+  useEffect(() => {
+    if (socketRef.current && session?.access_token) {
+      socketRef.current.auth = { token: session.access_token };
+      // If disconnected, it will use the new token on next reconnect
+    }
+  }, [session?.access_token]);
 
   return socket;
 };

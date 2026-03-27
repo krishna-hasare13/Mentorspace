@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { Toaster } from "react-hot-toast";
+import ClientLayout from "@/components/providers/ClientLayout";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark scroll-smooth">
       <body className={`${inter.className} bg-background text-foreground min-h-screen`}>
         <AuthProvider>
           <div className="relative min-h-screen overflow-x-hidden">
@@ -25,7 +26,10 @@ export default function RootLayout({
             <div className="fixed top-0 left-0 w-full h-full -z-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" />
             <div className="fixed -top-24 -left-24 w-96 h-96 bg-accent/10 blur-[120px] rounded-full -z-10" />
             
-            {children}
+            <ClientLayout>
+                {children}
+            </ClientLayout>
+            
             <Toaster position="bottom-right" toastOptions={{
               className: 'glass text-white border-white/10',
               style: {

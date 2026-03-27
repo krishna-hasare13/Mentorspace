@@ -40,7 +40,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/login');
+      router.push('/');
     }
   }, [user, loading, router]);
 
@@ -134,39 +134,39 @@ export default function DashboardPage() {
   const isMentor = profile.role === 'mentor';
 
   return (
-    <main className="p-6 md:p-10 max-w-7xl mx-auto pt-24">
+    <main className="p-4 md:p-10 max-w-7xl mx-auto pt-24 md:pt-32">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-        <div>
-          <h1 className="text-4xl font-bold mb-2">Welcome, {profile.display_name}</h1>
-          <p className="text-muted-foreground">
-            {isMentor ? 'Manage your mentoring sessions and students.' : 'Join your mentors and start learning.'}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-12">
+        <div className="max-w-2xl">
+          <h1 className="text-3xl md:text-5xl font-black mb-3 tracking-tight">Welcome, {profile.display_name}</h1>
+          <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
+            {isMentor ? 'Manage your mentoring sessions and students with the power of MentorSpace.' : 'Connect with your mentors and accelerate your journey.'}
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {isMentor ? (
             <button 
               onClick={() => setShowCreateModal(true)}
-              className="btn-primary flex items-center gap-2 px-6 py-3"
+              className="btn-primary flex-1 md:flex-initial flex items-center justify-center gap-2 px-6 py-3 text-sm font-bold uppercase tracking-widest transition-all hover:scale-[1.02]"
             >
-              <Plus className="w-5 h-5" /> Create Session
+              <Plus className="w-5 h-5" /> Create
             </button>
           ) : (
             <button 
               onClick={() => setShowJoinModal(true)}
-              className="btn-primary flex items-center gap-2 px-6 py-3"
+              className="btn-primary flex-1 md:flex-initial flex items-center justify-center gap-2 px-6 py-3 text-sm font-bold uppercase tracking-widest transition-all hover:scale-[1.02]"
             >
-              <Plus className="w-5 h-5" /> Join Session
+              <Plus className="w-5 h-5" /> Join
             </button>
           )}
-          <button onClick={signOut} className="btn-ghost p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-destructive/10 hover:text-destructive group transition-all">
+          <button onClick={signOut} className="p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-all shrink-0">
             <LogOut className="w-5 h-5" />
           </button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-12">
         {[
           { label: 'Active Sessions', value: sessions.filter(s => s.status === 'active').length, icon: Video, color: 'text-primary' },
           { label: 'Total Messages', value: '124', icon: MessageSquare, color: 'text-accent' },
@@ -177,14 +177,14 @@ export default function DashboardPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="glass-card flex items-center gap-6"
+            className="glass p-6 md:p-8 rounded-[2rem] border border-white/5 flex items-center gap-6"
           >
             <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center bg-white/5", stat.color)}>
               <stat.icon className="w-7 h-7" />
             </div>
             <div>
-              <p className="text-muted-foreground text-sm font-medium">{stat.label}</p>
-              <p className="text-3xl font-bold">{stat.value}</p>
+              <p className="text-white/40 text-[10px] md:text-xs font-black uppercase tracking-widest mb-1">{stat.label}</p>
+              <p className="text-3xl md:text-4xl font-black">{stat.value}</p>
             </div>
           </motion.div>
         ))}

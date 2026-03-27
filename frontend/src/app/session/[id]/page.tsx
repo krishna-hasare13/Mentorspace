@@ -39,7 +39,7 @@ export default function SessionRoomPage() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/login');
+      router.push('/');
     }
   }, [user, loading, router]);
 
@@ -65,7 +65,7 @@ export default function SessionRoomPage() {
         setLocalStream(stream);
       } catch (err: any) {
         toast.error('Could not initialize session: ' + err.message);
-        router.push('/dashboard');
+        router.push('/');
       }
     };
 
@@ -96,9 +96,9 @@ export default function SessionRoomPage() {
           'Authorization': `Bearer ${authSession?.access_token}`
         }
       });
-      router.push('/dashboard');
+      router.push('/');
     } catch (err) {
-      router.push('/dashboard');
+      router.push('/');
     }
   };
 
@@ -114,62 +114,63 @@ export default function SessionRoomPage() {
   const isMentor = profile?.id === session.mentor_id;
 
   return (
-    <main className="h-screen flex flex-col pt-2 bg-[#050810] overflow-hidden">
+    <main className="min-h-screen lg:h-screen flex flex-col pt-2 bg-[#050810] overflow-x-hidden lg:overflow-hidden">
       {/* Top Bar */}
-      <header className="px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <header className="px-4 md:px-6 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
           <button 
-            onClick={() => router.push('/dashboard')}
-            className="p-2 hover:bg-white/5 rounded-xl transition-all text-white/30 hover:text-white"
+            onClick={() => router.push('/')}
+            className="p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition-all text-white/30 hover:text-white shrink-0"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
           </button>
-          <div className="w-px h-6 bg-white/10" />
-          <div>
-            <h1 className="text-lg font-bold leading-none">{session.title}</h1>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-[10px] px-1.5 bg-green-500/10 text-green-400 rounded uppercase font-bold tracking-tighter ring-1 ring-green-500/20">Active</span>
-              <span className="text-[10px] text-white/20 uppercase font-bold tracking-widest">{session.profiles?.display_name}</span>
+          <div className="w-px h-6 bg-white/10 shrink-0" />
+          <div className="min-w-0">
+            <h1 className="text-sm md:text-lg font-bold leading-none truncate">{session.title}</h1>
+            <div className="flex items-center gap-2 mt-1 whitespace-nowrap overflow-hidden">
+              <span className="text-[9px] md:text-[10px] px-1.5 bg-green-500/10 text-green-400 rounded uppercase font-bold tracking-tighter ring-1 ring-green-500/20">Active</span>
+              <span className="text-[9px] md:text-[10px] text-white/20 uppercase font-bold tracking-widest truncate">{session.profiles?.display_name}</span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3 shrink-0">
           <button 
             onClick={handleCopyInvite}
-            className="glass flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold hover:bg-white/10 transition-all border-white/5"
+            className="glass flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl text-[10px] md:text-sm font-bold hover:bg-white/10 transition-all border-white/5"
           >
-            {copied ? <Check className="w-4 h-4 text-green-400" /> : <Share2 className="w-4 h-4 text-primary" />}
-            <span className="font-mono">{session.invite_code}</span>
+            {copied ? <Check className="w-3 h-3 md:w-4 md:h-4 text-green-400" /> : <Share2 className="w-3 h-3 md:w-4 md:h-4 text-primary" />}
+            <span className="font-mono hidden sm:inline">{session.invite_code}</span>
           </button>
           
-          <div className="w-px h-8 bg-white/10 mx-2" />
+          <div className="hidden sm:block w-px h-8 bg-white/10 mx-1" />
 
           {isMentor && (
             <button 
               onClick={handleEndSession}
-              className="bg-destructive/10 text-destructive border border-destructive/20 px-4 py-2 rounded-xl text-sm font-bold hover:bg-destructive/20 transition-all"
+              className="bg-destructive/10 text-destructive border border-destructive/20 px-3 md:px-4 py-2 rounded-xl text-[10px] md:text-sm font-bold hover:bg-destructive/20 transition-all"
             >
-              End Session
+              <span className="hidden sm:inline">End Session</span>
+              <span className="sm:hidden text-lg leading-none">×</span>
             </button>
           )}
 
           <button 
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push('/')}
             className="glass p-2 rounded-xl hover:bg-white/10 transition-all border-white/5"
           >
-            <LogOut className="w-5 h-5 text-white/50" />
+            <LogOut className="w-4 h-4 md:w-5 md:h-5 text-white/50" />
           </button>
         </div>
       </header>
 
       {/* Main Content Area */}
-      <div className="flex-1 grid grid-cols-12 gap-4 p-4 min-h-0">
+      <div className="flex-1 grid grid-cols-12 gap-4 p-4 min-h-0 overflow-y-auto lg:overflow-hidden lg:grid-rows-1">
         {/* Left: Video */}
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="col-span-12 lg:col-span-4 min-h-0"
+          className="col-span-12 lg:col-span-4 min-h-[300px] lg:min-h-0"
         >
           <VideoPanel localStream={localStream} remoteStream={remoteStream} />
         </motion.div>
@@ -179,9 +180,9 @@ export default function SessionRoomPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="col-span-12 lg:col-span-5 min-h-0"
+          className="col-span-12 lg:col-span-5 min-h-[500px] lg:min-h-0"
         >
-          <EditorPanel socket={editorSocket} language={session.language} />
+          <EditorPanel socket={editorSocket} initialLanguage={session.language} />
         </motion.div>
 
         {/* Right: Chat */}
@@ -189,20 +190,20 @@ export default function SessionRoomPage() {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
-          className="col-span-12 lg:col-span-3 min-h-0"
+          className="col-span-12 lg:col-span-3 min-h-[400px] lg:min-h-0"
         >
           <ChatPanel socket={chatSocket} sessionId={id as string} />
         </motion.div>
       </div>
 
       {/* Footer Info (Minor) */}
-      <footer className="px-6 py-2 flex items-center justify-between opacity-30">
-        <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest">
-          <div className="flex items-center gap-1"><Users className="w-3 h-3" /> Peer Connected</div>
-          <div className="flex items-center gap-1"><LayoutGrid className="w-3 h-3" /> Grid Optimized</div>
+      <footer className="px-6 py-3 flex items-center justify-between opacity-30 text-[9px] md:text-[10px]">
+        <div className="flex items-center gap-4 font-bold uppercase tracking-widest">
+          <div className="flex items-center gap-1"><Users className="w-2.5 h-2.5 md:w-3 md:h-3" /> <span className="hidden sm:inline">Peer Connected</span></div>
+          <div className="flex items-center gap-1"><LayoutGrid className="w-2.5 h-2.5 md:w-3 md:h-3" /> <span className="hidden sm:inline">Grid Optimized</span></div>
         </div>
-        <div className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1">
-          <Info className="w-3 h-3" /> Secure E2E Loop
+        <div className="font-bold uppercase tracking-widest flex items-center gap-1">
+          <Info className="w-2.5 h-2.5 md:w-3 md:h-3" /> <span className="hidden sm:inline">Secure E2E Loop</span>
         </div>
       </footer>
     </main>
