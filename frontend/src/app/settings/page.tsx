@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -25,11 +25,17 @@ export default function SettingsPage() {
   const { user, profile, loading } = useAuth();
   const router = useRouter();
   const [updating, setUpdating] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const resumeInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
     display_name: '',
     bio: '',
     avatar_url: '',
+    phone_number: '',
+    linkedin_url: '',
+    github_url: '',
+    resume_url: '',
     skills: [] as string[]
   });
   
@@ -44,10 +50,64 @@ export default function SettingsPage() {
         display_name: profile.display_name || '',
         bio: profile.bio || '',
         avatar_url: profile.avatar_url || '',
+        phone_number: profile.phone_number || '',
+        linkedin_url: profile.linkedin_url || '',
+        github_url: profile.github_url || '',
+        resume_url: profile.resume_url || '',
         skills: profile.skills || []
       });
     }
   }, [user, profile, loading, router]);
+
+  const uploadFile = async (file: File, bucket: string) => {
+    try {
+      const supabase = createClient();
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user?.id}-${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error: any) {
+      toast.error(`Error uploading file: ${error.message}`);
+      return null;
+    }
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUpdating(true);
+    const url = await uploadFile(file, 'avatars');
+    if (url) {
+      setFormData(prev => ({ ...prev, avatar_url: url }));
+      toast.success('Photo uploaded! Save changes to apply.');
+    }
+    setUpdating(false);
+  };
+
+  const handleResumeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUpdating(true);
+    const url = await uploadFile(file, 'resumes');
+    if (url) {
+      setFormData(prev => ({ ...prev, resume_url: url }));
+      toast.success('Resume uploaded! Save changes to apply.');
+    }
+    setUpdating(false);
+  };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,8 +130,6 @@ export default function SettingsPage() {
       if (data.error) throw new Error(data.error);
       
       toast.success('Profile updated successfully!');
-      // Force a refresh of the profile in the context by reloading the page or manually triggering a refresh
-      // Since I haven't added refreshProfile yet, I'll just reload
       window.location.reload();
     } catch (err: any) {
       toast.error(err.message || 'Failed to update profile');
@@ -127,9 +185,19 @@ export default function SettingsPage() {
                   <User className="w-12 h-12 text-white/10" />
                 )}
               </div>
-              <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-primary rounded-xl flex items-center justify-center border-4 border-[#050810] cursor-pointer hover:scale-110 transition-all">
+              <button 
+                onClick={() => avatarInputRef.current?.click()}
+                className="absolute -bottom-2 -right-2 w-10 h-10 bg-primary rounded-xl flex items-center justify-center border-4 border-[#050810] cursor-pointer hover:scale-110 transition-all shadow-xl"
+              >
                 <ImageIcon className="w-4 h-4 text-white" />
-              </div>
+              </button>
+              <input 
+                type="file" 
+                ref={avatarInputRef} 
+                onChange={handleAvatarChange} 
+                className="hidden" 
+                accept="image/*" 
+              />
             </div>
             
             <h2 className="text-xl font-bold mb-1">{formData.display_name || profile.display_name}</h2>
@@ -164,20 +232,6 @@ export default function SettingsPage() {
                   onChange={e => setFormData({ ...formData, display_name: e.target.value })}
                   className="input-field w-full pl-12"
                   placeholder="Your Name"
-                />
-              </div>
-            </div>
-
-            {/* Avatar URL */}
-            <div className="space-y-4">
-              <label className="text-xs font-black uppercase tracking-widest text-white/30">Avatar Image URL</label>
-              <div className="relative group">
-                <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20 group-focus-within:text-primary transition-all" />
-                <input 
-                  value={formData.avatar_url}
-                  onChange={e => setFormData({ ...formData, avatar_url: e.target.value })}
-                  className="input-field w-full pl-12"
-                  placeholder="https://example.com/avatar.jpg"
                 />
               </div>
             </div>
@@ -221,6 +275,84 @@ export default function SettingsPage() {
                     </button>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Additional Info Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/5">
+              {/* Phone Number */}
+              <div className="space-y-4">
+                <label className="text-xs font-black uppercase tracking-widest text-white/30">Phone Number</label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20 group-focus-within:text-primary transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l2.18-2.18a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                  </div>
+                  <input 
+                    value={formData.phone_number}
+                    onChange={e => setFormData({ ...formData, phone_number: e.target.value })}
+                    className="input-field w-full pl-12"
+                    placeholder="+91 1234567890"
+                  />
+                </div>
+              </div>
+
+              {/* LinkedIn URL */}
+              <div className="space-y-4">
+                <label className="text-xs font-black uppercase tracking-widest text-white/30">LinkedIn Profile</label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20 group-focus-within:text-primary transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+                  </div>
+                  <input 
+                    value={formData.linkedin_url}
+                    onChange={e => setFormData({ ...formData, linkedin_url: e.target.value })}
+                    className="input-field w-full pl-12"
+                    placeholder="https://linkedin.com/in/username"
+                  />
+                </div>
+              </div>
+
+              {/* GitHub URL */}
+              <div className="space-y-4">
+                <label className="text-xs font-black uppercase tracking-widest text-white/30">GitHub Profile</label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20 group-focus-within:text-primary transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+                  </div>
+                  <input 
+                    value={formData.github_url}
+                    onChange={e => setFormData({ ...formData, github_url: e.target.value })}
+                    className="input-field w-full pl-12"
+                    placeholder="https://github.com/username"
+                  />
+                </div>
+              </div>
+
+              {/* Resume Upload */}
+              <div className="space-y-4">
+                <label className="text-xs font-black uppercase tracking-widest text-white/30">Resume (PDF)</label>
+                <div className="flex flex-col gap-2">
+                  <button 
+                    type="button"
+                    onClick={() => resumeInputRef.current?.click()}
+                    className="w-full h-12 glass border-white/10 rounded-2xl flex items-center justify-center gap-2 text-sm font-bold hover:bg-white/5 transition-all"
+                  >
+                    <LinkIcon className="w-4 h-4 text-primary" />
+                    {formData.resume_url ? 'Change Resume' : 'Choose PDF File'}
+                  </button>
+                  <input 
+                    type="file" 
+                    ref={resumeInputRef} 
+                    onChange={handleResumeChange} 
+                    className="hidden" 
+                    accept=".pdf" 
+                  />
+                  {formData.resume_url && (
+                    <p className="text-[10px] text-green-400 font-bold uppercase tracking-widest ml-1 flex items-center gap-1">
+                      <Check className="w-3 h-3" /> File Ready
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 

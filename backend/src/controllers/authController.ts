@@ -161,7 +161,7 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
   }
 };
 export const updateProfile = async (req: Request, res: Response): Promise<void> => {
-  const { display_name, bio, skills, avatar_url } = req.body;
+  const { display_name, bio, skills, avatar_url, phone_number, linkedin_url, github_url, resume_url } = req.body;
   const userId = req.user!.sub;
 
   try {
@@ -172,6 +172,10 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
         bio,
         skills,
         avatar_url,
+        phone_number,
+        linkedin_url,
+        github_url,
+        resume_url,
         updated_at: new Date().toISOString(),
       })
       .eq('id', userId)
@@ -195,7 +199,7 @@ export const getPublicProfile = async (req: Request, res: Response): Promise<voi
   try {
     const { data: profile, error } = await supabaseAdmin
       .from('profiles')
-      .select('id, display_name, role, avatar_url, bio, skills, created_at')
+      .select('id, display_name, role, avatar_url, bio, skills, phone_number, linkedin_url, github_url, resume_url, created_at')
       .eq('id', id)
       .single();
 

@@ -72,17 +72,11 @@ export const Navbar = () => {
                 <div className="hidden md:flex items-center gap-4">
                     {user ? (
                         <>
-                            <Link 
+                             <Link 
                                 href="/dashboard" 
                                 className="text-sm font-medium text-white/70 hover:text-white px-2"
                             >
                                 Dashboard
-                            </Link>
-                            <Link 
-                                href="/settings" 
-                                className="text-sm font-medium text-white/70 hover:text-white px-2"
-                            >
-                                Settings
                             </Link>
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
@@ -170,19 +164,12 @@ export const Navbar = () => {
                             >
                                 {user ? (
                                     <>
-                                        <Link
+                                         <Link
                                             href="/dashboard"
                                             className="inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white glass rounded-2xl"
                                             onClick={toggleMenu}
                                         >
                                             Dashboard
-                                        </Link>
-                                        <Link
-                                            href="/settings"
-                                            className="inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white glass rounded-2xl"
-                                            onClick={toggleMenu}
-                                        >
-                                            Settings
                                         </Link>
                                         <button
                                             onClick={() => { signOut(); toggleMenu(); }}
