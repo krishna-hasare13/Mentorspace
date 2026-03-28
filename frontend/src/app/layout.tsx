@@ -8,8 +8,18 @@ import ClientLayout from "@/components/providers/ClientLayout";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "MentorSpace | 1-on-1 Real-time Mentorship",
+  title: "MentorSpace",
   description: "A premium platform for collaborative learning with real-time video, code editing, and chat.",
+  icons: {
+    icon: [
+      { url: "/logo.png", sizes: "32x32" },
+      { url: "/logo.png", sizes: "192x192" },
+      { url: "/logo.png", sizes: "512x512" },
+    ],
+    apple: [
+      { url: "/logo.png", sizes: "180x180" },
+    ],
+  },
 };
 
 export default function RootLayout({
