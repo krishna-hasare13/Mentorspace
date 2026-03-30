@@ -13,38 +13,72 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     return;
   }
   
-  // Remove quotes if they exist (standardizing)
+  // Clean the token (trim whitespace and remove quotes if present)
+  token = token.trim();
   if (token.startsWith('"') && token.endsWith('"')) {
     token = token.slice(1, -1);
   }
+  token = token.trim(); // Trim again after removing quotes
 
   try {
-    // Verify the JWT signature using the Supabase JWT Secret
-    // This is the most reliable way to verify tokens in a custom backend
-    const decoded = jwt.verify(token, supabaseJwtSecret) as any;
-    
-    if (!decoded || !decoded.sub) {
-      res.status(403).json({ error: 'Invalid or expired token' });
-      return;
+    // 1. Diagnostic info for debugging
+    const decodedHeader = jwt.decode(token, { complete: true }) as any;
+    const alg = decodedHeader?.header?.alg || 'unknown';
+    const payload = decodedHeader?.payload || {};
+    console.log(`--- Auth Attempt [Alg: ${alg}] ---`);
+
+    // 2. Try LOCAL verification first (fast, reliable for standard Supabase)
+    try {
+      const decoded = jwt.verify(token, supabaseJwtSecret) as any;
+      
+      if (decoded && decoded.sub) {
+        console.log('Local JWT Verification: Success');
+        const role = decoded.user_metadata?.role || decoded.app_metadata?.role || 'student';
+        req.user = {
+          sub: decoded.sub,
+          email: decoded.email || '',
+          role: (role === 'mentor' || role === 'student') ? role : 'student',
+          display_name: decoded.user_metadata?.display_name
+        };
+        return next();
+      }
+    } catch (localErr: any) {
+      console.log('Local JWT Verification failed:', localErr.message);
+      // If it's just expired, don't waste time with remote fetch
+      if (localErr.message === 'jwt expired') {
+        throw localErr;
+      }
     }
 
-    // Role extraction from Supabase's token structure
-    // Role can be in user_metadata (custom) or app_metadata (system)
-    const role = decoded.user_metadata?.role || decoded.app_metadata?.role || 'student';
-
-    req.user = {
-      sub: decoded.sub,
-      email: decoded.email || '',
-      role: (role === 'mentor' || role === 'student') ? role : 'student',
-      display_name: decoded.user_metadata?.display_name
-    };
+    // 3. Fallback to REMOTE Supabase API (slower, but handles complex tokens like ES256)
+    console.log('Attempting Remote Supabase Verification...');
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
     
-    next();
+    if (user && !error) {
+      console.log('Remote Supabase Verification: Success');
+      req.user = {
+        sub: user.id,
+        email: user.email || '',
+        role: user.user_metadata?.role || 'student',
+        display_name: user.user_metadata?.display_name
+      };
+      return next();
+    }
+
+    if (error) {
+      console.error('Remote Supabase Error:', error.message);
+      throw new Error(error.message);
+    }
+
+    throw new Error('Invalid token');
+
   } catch (err: any) {
-    console.error('Token Verification Failure:', err.message);
+    const alg = (jwt.decode(token, { complete: true }) as any)?.header?.alg || 'unknown';
+    console.error('Token Authentication Failed:', err.message);
+    
     res.status(403).json({ 
       error: 'Invalid or expired token', 
-      detailed: err.message === 'jwt expired' ? 'Your session has expired. Please log in again.' : err.message
+      detailed: `${err.message} (Alg: ${alg}). Please ensure your SUPABASE_URL and SECRET are correct in the backend.`
     });
   }
 };
