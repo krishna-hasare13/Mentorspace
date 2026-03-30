@@ -348,27 +348,17 @@ export const getPublicUserSessions = async (req: Request, res: Response): Promis
 export const deleteSession = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const userId = req.user!.sub;
-  const role = req.user!.role;
 
   try {
-    if (role === 'mentor') {
-      // Mentors delete the entire session
-      const { data: session } = await supabaseAdmin
-        .from('sessions')
-        .select('mentor_id')
-        .eq('id', id)
-        .single();
+    // 1. Check if the user is the mentor (owner)
+    const { data: session } = await supabaseAdmin
+      .from('sessions')
+      .select('mentor_id')
+      .eq('id', id)
+      .single();
 
-      if (!session) {
-        res.status(404).json({ error: 'Session not found' });
-        return;
-      }
-
-      if (session.mentor_id !== userId) {
-        res.status(403).json({ error: 'Not authorized to delete this session' });
-        return;
-      }
-
+    if (session && session.mentor_id === userId) {
+      // User is the owner -> delete the entire session
       const { error } = await supabaseAdmin
         .from('sessions')
         .delete()
@@ -379,7 +369,7 @@ export const deleteSession = async (req: Request, res: Response): Promise<void> 
         return;
       }
     } else {
-      // Students "delete" the session by removing their participation record
+      // User is NOT the owner (or session doesn't exist) -> remove their participation record
       const { error } = await supabaseAdmin
         .from('session_participants')
         .delete()
@@ -390,6 +380,9 @@ export const deleteSession = async (req: Request, res: Response): Promise<void> 
         res.status(500).json({ error: error.message });
         return;
       }
+      
+      // If we are here, and there was no session record found initially, 
+      // the participation delete will just happen (0 rows if not found).
     }
 
     res.json({ message: 'Session deleted successfully' });
