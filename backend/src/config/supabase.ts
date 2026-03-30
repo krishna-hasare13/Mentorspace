@@ -5,10 +5,13 @@ dotenv.config();
 
 const supabaseUrl = process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseJwtSecret = process.env.SUPABASE_JWT_SECRET!;
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error('Missing Supabase environment variables');
+if (!supabaseUrl || !supabaseServiceKey || !supabaseJwtSecret) {
+  throw new Error('Missing Supabase environment variables: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, or SUPABASE_JWT_SECRET');
 }
+
+export { supabaseJwtSecret };
 
 export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {

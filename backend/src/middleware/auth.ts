@@ -2,42 +2,50 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { UserPayload } from '../types';
 
-import { supabaseAdmin } from '../config/supabase';
+import { supabaseAdmin, supabaseJwtSecret } from '../config/supabase';
 
 export const authenticateToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const authHeader = req.headers['authorization'];
   let token = authHeader && authHeader.split(' ')[1];
 
-  // Also allow token from query params or cookies if needed, but we use Bearer
   if (!token) {
     res.status(401).json({ error: 'Access token required' });
     return;
   }
   
-  // Remove quotes if they exist
+  // Remove quotes if they exist (standardizing)
   if (token.startsWith('"') && token.endsWith('"')) {
     token = token.slice(1, -1);
   }
 
   try {
-    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+    // Verify the JWT signature using the Supabase JWT Secret
+    // This is the most reliable way to verify tokens in a custom backend
+    const decoded = jwt.verify(token, supabaseJwtSecret) as any;
     
-    if (error || !user) {
-      console.error('Supabase Auth Error:', error?.message || 'User not found');
-      res.status(403).json({ error: 'Invalid or expired token', detailed: error?.message });
+    if (!decoded || !decoded.sub) {
+      res.status(403).json({ error: 'Invalid or expired token' });
       return;
     }
 
+    // Role extraction from Supabase's token structure
+    // Role can be in user_metadata (custom) or app_metadata (system)
+    const role = decoded.user_metadata?.role || decoded.app_metadata?.role || 'student';
+
     req.user = {
-      sub: user.id,
-      email: user.email!,
-      role: user.user_metadata?.role || 'student',
-      display_name: user.user_metadata?.display_name
+      sub: decoded.sub,
+      email: decoded.email || '',
+      role: (role === 'mentor' || role === 'student') ? role : 'student',
+      display_name: decoded.user_metadata?.display_name
     };
+    
     next();
-  } catch (error: any) {
-    console.error('Token Authentication Exception:', error.message);
-    res.status(403).json({ error: 'Invalid or expired token', detailed: error.message });
+  } catch (err: any) {
+    console.error('Token Verification Failure:', err.message);
+    res.status(403).json({ 
+      error: 'Invalid or expired token', 
+      detailed: err.message === 'jwt expired' ? 'Your session has expired. Please log in again.' : err.message
+    });
   }
 };
 
