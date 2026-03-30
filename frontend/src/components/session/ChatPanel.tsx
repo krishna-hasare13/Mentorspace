@@ -93,8 +93,8 @@ export const ChatPanel = ({ socket, sessionId }: { socket: Socket | null, sessio
                 </span>
               </div>
               <div className={cn(
-                "px-3 py-2 rounded-xl text-sm",
-                isMe ? "bg-primary text-white rounded-tr-none" : "bg-white/5 text-white/80 border border-white/10 rounded-tl-none"
+                "px-3 py-2 rounded-xl text-sm shadow-sm",
+                isMe ? "bg-primary text-primary-foreground rounded-tr-none font-medium" : "bg-white/5 text-white/80 border border-white/10 rounded-tl-none"
               )}>
                 {msg.content.includes('```') ? (
                   <pre className="p-2 bg-black/40 rounded-lg font-mono text-xs overflow-x-auto my-1 border border-white/5">
@@ -119,16 +119,8 @@ export const ChatPanel = ({ socket, sessionId }: { socket: Socket | null, sessio
             className="input-field w-full pr-12 py-3 bg-white/5 border-white/10 group-focus-within:border-primary/50 transition-all"
           />
           <button 
-            type="button"
-            onClick={() => setInput(prev => `\`\`\`\n${prev}\n\`\`\``)}
-            className="absolute right-12 top-1/2 -translate-y-1/2 p-2 hover:bg-white/5 text-white/20 hover:text-white transition-all rounded-lg"
-            title="Wrap as code"
-          >
-            <Code className="w-4 h-4" />
-          </button>
-          <button 
             type="submit"
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-primary text-white rounded-lg hover:bg-primary/80 transition-all active:scale-90 shadow-lg shadow-primary/20"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-accent text-white rounded-lg hover:bg-accent/80 transition-all active:scale-90 shadow-lg shadow-accent/20"
           >
             <Send className="w-4 h-4" />
           </button>
